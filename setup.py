@@ -18,11 +18,11 @@ class TestCommand(Command):
         '''
         Finds all the tests modules in tests/, and runs them.
         '''
-        from pymysql import tests
+        from mykaze import tests
         import unittest
         unittest.main(tests, argv=sys.argv[:1])
 
-version_tuple = __import__('pymysql').VERSION
+version_tuple = __import__('mykaze').VERSION
 
 if version_tuple[2] is not None:
     version = "%d.%d_%s" % version_tuple
@@ -30,15 +30,15 @@ else:
     version = "%d.%d" % version_tuple[:2]
 
 setup(
-    name = "PyMySQL",
+    name = "MyKaze",
     version = version,
-    url = 'https://github.com/petehunt/PyMySQL/',
+    url = 'https://github.com/methane/MyKaze/',
     author = 'yutaka.matsubara',
     author_email = 'yutaka.matsubara@gmail.com',
-    maintainer = 'Pete Hunt',
-    maintainer_email = 'floydophone@gmail.com',
-    description = 'Pure Python MySQL Driver ',
+    maintainer = 'INADA Naoki',
+    maintainer_email = 'songofacandy@gmail.com',
+    description = 'Pure Python MySQL Driver for Torando',
     license = "MIT",
-    packages = ['pymysql', 'pymysql.constants', 'pymysql.tests'],
+    packages = ['mykaze', 'mykaze.constants', 'mykaze.tests'],
     cmdclass = {'test': TestCommand},
 )
