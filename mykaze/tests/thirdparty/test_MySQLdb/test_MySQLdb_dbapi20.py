@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 from . import dbapi20
 import unittest
-import pymysql
-from pymysql.tests import base
+import mykaze
+from mykaze.tests import base
 
 # compatibility:
 if not hasattr(unittest, "expectedFailure"):
     unittest.expectedFailure = lambda f: f
 
 class test_MySQLdb(dbapi20.DatabaseAPI20Test):
-    driver = pymysql
+    driver = mykaze
     connect_args = ()
     connect_kw_args = base.PyMySQLTestCase.databases[0].copy()
     connect_kw_args.update(dict(read_default_file='~/.my.cnf',

@@ -1,4 +1,4 @@
-import pymysql
+import mykaze
 import unittest
 
 class PyMySQLTestCase(unittest.TestCase):
@@ -12,7 +12,7 @@ class PyMySQLTestCase(unittest.TestCase):
         self.connections = []
 
         for params in self.databases:
-            self.connections.append(pymysql.connect(**params))
+            self.connections.append(mykaze.connect(**params))
 
     def tearDown(self):
         for connection in self.connections:
