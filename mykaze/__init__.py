@@ -92,11 +92,6 @@ def Connect(*args, **kwargs):
     from .connections import Connection
     return Connection(*args, **kwargs)
     
-from pymysql import connections as _orig_conn
-Connect.__doc__ = _orig_conn.Connection.__init__.__doc__ + """\nSee connections.Connection.__init__() for
-    information about defaults."""
-del _orig_conn
-
 def get_client_info():  # for MySQLdb compatibility
   return '%s.%s.%s' % VERSION
 
@@ -110,14 +105,7 @@ NULL = "NULL"
 __version__ = get_client_info()
 
 def thread_safe():
-    return True # match MySQLdb.thread_safe()
-
-def install_as_MySQLdb():
-    """
-    After this function is called, any application that imports MySQLdb or
-    _mysql will unwittingly actually use 
-    """
-    sys.modules["MySQLdb"] = sys.modules["_mysql"] = sys.modules["pymysql"]
+    return False
 
 __all__ = [
     'BINARY', 'Binary', 'Connect', 'Connection', 'DATE', 'Date',
@@ -129,8 +117,6 @@ __all__ = [
     'connections', 'constants', 'converters', 'cursors',
     'escape_dict', 'escape_sequence', 'escape_string', 'get_client_info',
     'paramstyle', 'threadsafety', 'version_info',
-
-    "install_as_MySQLdb",
 
     "NULL","__version__",
     ]
