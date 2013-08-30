@@ -1,4 +1,6 @@
 import struct
+import greenlet
+from functools import wraps
 
 def byte2int(b):
     if isinstance(b, int):
@@ -17,3 +19,10 @@ def join_bytes(bs):
         for b in bs[1:]:
             rv += b
         return rv
+
+def wrap_green(func):
+    @wraps(func)
+    def meth(*args, **kw):
+        g = greenlet.greenlet(func)
+        return g.switch(*args, **kw)
+    return meth

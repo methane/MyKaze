@@ -6,16 +6,10 @@ import tornado.ioloop
 import greenlet
 from functools import wraps
 import mykaze
+from mykaze.util import wrap_green
 
 
-def within_greenlet(func):
-    @wraps(func)
-    def meth(*args, **kw):
-        g = greenlet.greenlet(lambda: func(*args, **kw))
-        return g.switch()
-    return meth
-
-@within_greenlet
+@wrap_green
 def sample(n):
     con = mykaze.connect('localhost', 'root', 'root')
     print('connected')
