@@ -615,13 +615,13 @@ class Connection(object):
 
     def close(self):
         ''' Send the quit message and close the socket '''
-        if self.socket is None:
+        if self.stream is None:
             raise Error("Already closed")
         send_data = struct.pack('<i',1) + int2byte(COM_QUIT)
         self._write_bytes(send_data)
+        assert not self.stream._write_buffer, "MyKaze expects small write is sent to socket buffer soon."
         self.stream.close()
         self.stream = None
-        self.socket = None
 
     def autocommit(self, value):
         self.autocommit_mode = value
@@ -752,7 +752,6 @@ class Connection(object):
                 if DEBUG: print('connected using socket')
             if self.no_delay:
                 sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
-            self.socket = sock
             self.stream = iostream.IOStream(sock)
             self._get_server_information()
             self._request_authentication()
@@ -803,7 +802,7 @@ class Connection(object):
     def _send_command(self, command, sql):
         #send_data = struct.pack('<i', len(sql) + 1) + command + sql
         # could probably be more efficient, at least it's correct
-        if not self.socket:
+        if not self.stream:
             self.errorhandler(None, InterfaceError, "(0, '')")
 
         # If the last query was unbuffered, make sure it finishes before
@@ -837,6 +836,7 @@ class Connection(object):
 
         next_packet = 1
 
+        assert not self.ssl, "MyKaze doesn't support ssl"
         if self.ssl:
             data = pack_int24(len(data_init)) + int2byte(next_packet) + data_init
             next_packet += 1
