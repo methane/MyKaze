@@ -52,6 +52,10 @@ from .err import raise_mysql_exception, Warning, Error, \
      InterfaceError, DataError, DatabaseError, OperationalError, \
      IntegrityError, InternalError, NotSupportedError, ProgrammingError
 
+import greenlet
+from tornado import ioloop, iostream
+io_loop = ioloop.IOLoop.instance()
+
 DEBUG = False
 
 NULL_COLUMN = 251
@@ -615,7 +619,8 @@ class Connection(object):
             raise Error("Already closed")
         send_data = struct.pack('<i',1) + int2byte(COM_QUIT)
         self._write_bytes(send_data)
-        self.socket.close()
+        self.stream.close()
+        self.stream = None
         self.socket = None
 
     def autocommit(self, value):
@@ -748,6 +753,7 @@ class Connection(object):
             if self.no_delay:
                 sock.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
             self.socket = sock
+            self.stream = iostream.IOStream(sock)
             self._get_server_information()
             self._request_authentication()
 
@@ -764,21 +770,15 @@ class Connection(object):
         return packet
 
     def _read_bytes(self, num_bytes):
-        d = self.socket.recv(num_bytes)
-        num_bytes -= len(d)
-        if num_bytes == 0:
-            return d
-        buff = bytearray(d)
-        while num_bytes:
-            d = self.socket.recv(num_bytes)
-            if not d:
-                break
-            num_bytes -= len(d)
-            buff += d
-        return bytes(buff)
+        current = greenlet.getcurrent()
+        parent = current.parent
+        assert parent, 'MyKaze can work in greenlet'
+
+        self.stream.read_bytes(num_bytes, current.switch)
+        return parent.switch()
 
     def _write_bytes(self, data):
-        return self.socket.sendall(data)
+        self.stream.write(data)
 
     def _read_query_result(self, unbuffered=False):
         if unbuffered:
