@@ -1,24 +1,37 @@
 #!/usr/bin/env python
+# coding: utf-8
+from __future__ import print_function
 
-import pymysql
+import tornado.ioloop
+import greenlet
+from functools import wraps
+import mykaze
 
-#conn = pymysql.connect(host='127.0.0.1', unix_socket='/tmp/mysql.sock', user='root', passwd=None, db='mysql')
+def within_greenlet(func):
+    @wraps(func)
+    def meth(*args, **kw):
+        g = greenlet.greenlet(lambda: func(*args, **kw))
+        return g.switch()
+    return meth
 
-conn = pymysql.connect(host='127.0.0.1', port=3306, user='root', passwd='', db='mysql')
-   
+@within_greenlet
+def sample():
+    #conn = mykaze.connect(host='127.0.0.1', unix_socket='/tmp/mysql.sock', user='root', passwd=None, db='mysql')
+    conn = mykaze.connect(host='127.0.0.1', port=3306, user='root', passwd='root', db='mysql')
 
-cur = conn.cursor()
+    cur = conn.cursor()
 
-cur.execute("SELECT Host,User FROM user")
+    cur.execute("SELECT Host,User FROM user")
 
-# print cur.description
+    # r = cur.fetchall()
+    # print r
+    # ...or...
+    for r in cur:
+       print(r)
 
-# r = cur.fetchall()
-# print r
-# ...or...
-for r in cur.fetchall():
-   print(r)
+    cur.close()
+    conn.close()
 
-cur.close()
-conn.close()
-
+io_loop = tornado.ioloop.IOLoop.instance()
+io_loop.add_callback(sample)
+io_loop.start()
